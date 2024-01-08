@@ -20,14 +20,14 @@ class VectorStorage:
         if index_name in pinecone.list_indexes():
             logger.info(f"Index {index_name} already exists, connecting to existing index")
         else:
-            pinecone.create_index(name=index_name, dimension=index_dimension, metric=metric)
+            pinecone.create_index(index_name, dimension=index_dimension, metric=metric)
 
-        self._index = pinecone.Index(name=index_name)
+        self._index = pinecone.Index(index_name)
 
 
-    def upload(self, vectors: list):
+    def upload(self, vectors: list[dict]):
         """Upload vectors to the vector storage"""        
-        with pinecone.Index(name=self._index_name, pool_threads=30) as index:
+        with pinecone.Index(self._index_name, pool_threads=30) as index:
             async_results = [
                 index.upsert(vectors=vectors_chunk, async_req=True)
                 for vectors_chunk in self._chunk(vectors)
@@ -36,7 +36,7 @@ class VectorStorage:
             [async_result.get() for async_result in async_results]
 
 
-    def query(self, vector: list, top_k: int = 5, **kwargs):
+    def query(self, vector: list[float], top_k: int = 5, **kwargs):
         """Query the vector storage
         Args:
             vector: The vector to query
