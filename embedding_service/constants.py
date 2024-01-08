@@ -9,4 +9,3 @@ try:
     PINECONE_ENVIRONMENT = os.environ['PINECONE_ENVIRONMENT']
 except:
     raise EnvironmentError('Necessary environment variables not found')
-
