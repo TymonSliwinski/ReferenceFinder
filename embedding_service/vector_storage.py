@@ -9,7 +9,7 @@ class VectorStorage:
     
     def __init__(self, api_key: str, api_env: str, index_dimension: int, **kwargs):
         """Initialize the vector storage"""
-        self._setup_vector_storage(**kwargs)
+        self._setup_vector_storage(api_key, api_env, index_dimension, **kwargs)
         self._index = None
         self._index_name = kwargs.get("index_name", "index")
 
