@@ -1,12 +1,10 @@
+import argparse
 import os
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from pypdf import PdfReader
 
 BACKNED_URL = os.environ.get('BACKNED_URL', 'http://localhost:5000')
-
-files_path = 'data'
-
 
 def process_paragraph(paragraph, file_name, page_number, i):
     paragraph = paragraph.replace('-\n', '').replace('\n', ' ') + '.'
@@ -31,7 +29,7 @@ def process_paragraph(paragraph, file_name, page_number, i):
         'metadata': metadata,
     }
 
-def process_files():
+def process_files(files_path: str):
     pdf_files = [
         os.path.join(files_path, file)
         for file in os.listdir(files_path)
@@ -65,5 +63,15 @@ def process_files():
                     response.raise_for_status()
 
 
+def main():
+    parser = argparse.ArgumentParser(description='Loads PDF files, embeds to vectors and uploads to backend')
+    parser.add_argument('--path', type=str, help='Path to PDF files')
+    args = parser.parse_args()
+
+    if args.path:
+        files_path = args.path
+
+    process_files(files_path)
+
 if __name__ == '__main__':
-    process_files()
+    main()
