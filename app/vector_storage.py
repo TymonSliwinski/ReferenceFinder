@@ -10,7 +10,6 @@ class VectorStorage:
     def __init__(self, api_key: str, api_env: str, index_dimension: int, **kwargs):
         """Initialize the vector storage"""
         self._setup_vector_storage(api_key, api_env, index_dimension, **kwargs)
-        self._index = None
         self._index_name = kwargs.get("index_name", "index")
 
     def _setup_vector_storage(self, api_key: str, api_env: str, index_dimension: int, index_name="index", metric="cosine"):
@@ -36,7 +35,7 @@ class VectorStorage:
             [async_result.get() for async_result in async_results]
 
 
-    def query(self, vector: list[float], top_k: int = 5, **kwargs):
+    def query(self, vector: list[float], top_k = 5, **kwargs):
         """Query the vector storage
         Args:
             vector: The vector to query
@@ -46,7 +45,7 @@ class VectorStorage:
             include_metadata: Whether to include the metadata in the response
         
         """
-        return self._index.query(queries=vector, top_k=top_k, **kwargs)
+        return self._index.query(vector, top_k=top_k, **kwargs)
 
 
     def _chunk(self, iterable, batch_size=100):

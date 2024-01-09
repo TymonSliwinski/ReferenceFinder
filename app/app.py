@@ -27,9 +27,21 @@ def upload():
     vector_storage.upload(vectors)
     return { 'message': 'Success' }
 
-@app.route('/api/vectors/query')
-def query(vector: list, top_k: int = 5, **kwargs):
-    return vector_storage.query(escape(vector), top_k, **kwargs)
+@app.route('/api/vectors/query', methods=['POST'])
+def query():
+    text: str = request.json.get('text')
+    if not text:
+        return { 'message': 'Missing query text' }, 400
+
+    vector = embeddings.embed(escape(text))
+    top_k: int = escape(request.json.get('top_k', 5))
+    args = dict(
+        filters = escape(request.json.get('filters', {})),
+        include_values = escape(request.json.get('include_values', False)),
+        include_metadata = escape(request.json.get('include_metadata', True)),
+    )
+    matches = vector_storage.query(vector, top_k=top_k, **args)
+    return matches.to_dict()
 
 
 if __name__ == '__main__':
