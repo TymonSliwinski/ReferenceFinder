@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt
 
 COPY ./app/. .
 
-CMD [ "python", "-m", "flask", "--app", "app", "run", "--host=0.0.0.0" ]
+CMD [ "gunicorn", "-b", "0.0.0.0", "app:app"]
