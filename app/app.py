@@ -1,3 +1,4 @@
+import argparse
 from flask import Flask, request
 from markupsafe import escape
 from embeddings import Embeddings
@@ -5,7 +6,6 @@ from vector_storage import VectorStorage
 from constants import PINECONE_API_KEY, PINECONE_ENVIRONMENT
 
 app = Flask(__name__)
-
 
 embeddings = Embeddings()
 
@@ -18,13 +18,25 @@ vector_storage = VectorStorage(
 @app.route('/api/embed', methods=['POST'])
 def embed():
     text = request.json.get('text')
-    vector = embeddings.embed(text)
+    if not text:
+        return { 'message': 'Missing text' }, 400
+    vector = embeddings.embed(escape(text))
     return vector
 
 @app.route('/api/vectors/upload', methods=['POST'])
 def upload():
     vectors = request.json.get('vectors')
-    vector_storage.upload(vectors)
+    if not vectors:
+        return { 'message': 'Missing vectors' }, 400
+    try:
+        vectors = [dict(
+            id = escape(vector['id']),
+            values = escape(vector['values']),
+            metadata = escape(vector['metadata']),
+        ) for vector in vectors]
+        vector_storage.upload(vectors)
+    except Exception as e:
+        return { 'message': str(e) }, 400
     return { 'message': 'Success' }
 
 @app.route('/api/vectors/query', methods=['POST'])
@@ -44,5 +56,14 @@ def query():
     return matches.to_dict()
 
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--port', default=5000, type=int)
+    parser.add_argument('--debug', default=False, action='store_true')
+    args = parser.parse_args()
+    
+    app.run(host=args.host, port=args.port, debug=args.debug)
+
 if __name__ == '__main__':
-    app.run()
+    main()
