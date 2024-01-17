@@ -1,11 +1,9 @@
 import argparse
-from flask import Flask, request
+from flask import Flask, render_template, request, Request
 from markupsafe import escape
 from embeddings import Embeddings
 from vector_storage import VectorStorage
 from constants import PINECONE_API_KEY, PINECONE_ENVIRONMENT
-
-app = Flask(__name__)
 
 embeddings = Embeddings()
 
@@ -14,6 +12,38 @@ vector_storage = VectorStorage(
     api_env=PINECONE_ENVIRONMENT,
     index_dimension=embeddings.dimension,
 )
+
+def query_logic(request: Request):
+    text: str = request.json.get('text')
+    if not text:
+        return { 'message': 'Missing query text' }, 400
+
+    vector = embeddings.embed(str(escape(text)))
+    top_k: int = int(request.json.get('top_k', 5))
+    args = dict(
+        filters = request.json.get('filters', {}),
+        include_values = request.json.get('include_values', False),
+        include_metadata = request.json.get('include_metadata', True),
+    )
+    results = vector_storage.query(vector, top_k=top_k, **args)
+    for vector in results.get('matches', []):
+        if vector.get('metadata', {}).get('page'):
+            vector['metadata']['page'] = int(vector['metadata']['page'])
+    return results.to_dict()
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/vectors/query', methods=['POST'])
+def query_page():
+    results = query_logic(request)
+    if isinstance(results, tuple):
+        return results
+
+    return render_template('results.html', results=results['matches'])
 
 @app.route('/api/embed', methods=['POST'])
 def embed():
@@ -41,20 +71,7 @@ def upload():
 
 @app.route('/api/vectors/query', methods=['POST'])
 def query():
-    text: str = request.json.get('text')
-    if not text:
-        return { 'message': 'Missing query text' }, 400
-
-    vector = embeddings.embed(escape(text))
-    top_k: int = escape(request.json.get('top_k', 5))
-    args = dict(
-        filters = escape(request.json.get('filters', {})),
-        include_values = escape(request.json.get('include_values', False)),
-        include_metadata = escape(request.json.get('include_metadata', True)),
-    )
-    matches = vector_storage.query(vector, top_k=top_k, **args)
-    return matches.to_dict()
-
+    return query_logic(request)
 
 def main():
     parser = argparse.ArgumentParser()

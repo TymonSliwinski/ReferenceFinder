@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form id="search-form" hx-post="/vectors/query" hx-target="#results" hx-ext="json-enc"
+    hx-include="#include_values,#include_metadata"
+    class="relative flex justify-between items-center p-4 bg-white w-full align-baseline rounded-full mx-auto shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+    <button id="filtersButton" type="button" class="mr-4 hover:opacity-80 rotate-btn"
+        onclick="hideShow('#filters'); this.classList.toggle('rotate');">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="gray"
+            class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+        </svg>
+    </button>
+    <div id="filters"
+        class="origin-top-left absolute top-14 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 flex flex-col hidden">
+        <!-- <label for="topK" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label> -->
+        <label class="flex flex-row justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 items-center">
+            <span>
+                Top results
+            </span>
+            <select id="topK" name="topK"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-max p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 cursor-pointer">
+                <option selected>5</option>
+                <option value=10>10</option>
+                <option value=15>15</option>
+                <option value=20>20</option>
+            </select>
+        </label>
+        <label class="flex flex-row justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+            <span>
+                Include Values
+            </span>
+            <input type="checkbox" name="include_values" id="include_values" value="true" checked>
+        </label>
+        <label class="flex flex-row justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+            <span>
+                Include Metadata
+            </span>
+            <input type="checkbox" name="include_metadata" id="include_metadata" checked value="true">
+        </label>
+    </div>
+    <input type="text" name="text" id="query" placeholder="Search for a reference" hx-post="/vectors/query"
+        hx-target="#results" hx-ext="json-enc" hx-trigger="keyup changed delay:250ms" class="w-full focus:outline-none">
+    <button type="submit">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="gray"
+            class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+    </button>
+</form>
+<div id="results"></div>
+
+{% endblock content %}
